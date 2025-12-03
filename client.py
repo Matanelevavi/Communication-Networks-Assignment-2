@@ -32,6 +32,7 @@ def main():
             while True:
                 mode = input("\nMode (calc/gpt): ").strip()
                 if mode in ["quit", "exit"]:
+                    print("Disconnecting from server!")
                     break
 
                 if mode == "calc":
