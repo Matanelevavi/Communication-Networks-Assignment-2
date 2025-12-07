@@ -8,6 +8,20 @@ Enabling real GPT calls (optional):
 import argparse, socket, json, time, threading, math, os, ast, operator, collections
 from typing import Any, Dict
 
+
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+load_dotenv()
+api_key = os.getenv("GOOGLE_API_KEY")
+
+if api_key:
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-2.5-flash')
+else:
+    model = None
+    print("[server] WARNING: No GOOGLE_API_KEY found in .env file.")
+
 # ---------------- LRU Cache (simple) ----------------
 class LRUCache:
     """Minimal LRU cache based on OrderedDict."""
@@ -72,11 +86,11 @@ def safe_eval_expr(expr: str) -> float:
 
 # ---------------- GPT Call (stub by default) ----------------
 def call_gpt(prompt: str) -> str:
-    """
-    Stub for GPT call — returns a placeholder string.
-    Replace this with a real OpenAI call if desired.
-    """
-    return f"[GPT-STUB] Received a prompt of length {len(prompt)} chars."
+    try:
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        return f"AI Error: {str(e)}"
 
 # ---------------- Server core ----------------
 def handle_request(msg: Dict[str, Any], cache: LRUCache) -> Dict[str, Any]:
