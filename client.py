@@ -20,7 +20,7 @@ def request(s: socket.socket, payload: dict) -> dict:
 def main():
     ap = argparse.ArgumentParser(description="Client (calc/gpt over JSON TCP)")
     ap.add_argument("--host", default="127.0.0.1")
-    ap.add_argument("--port", type=int, default=5555)
+    ap.add_argument("--port", type=int, default=5554)
     ap.add_argument("--mode", choices=["calc", "gpt"])
     ap.add_argument("--expr", help="Expression for mode=calc")
     ap.add_argument("--prompt", help="Prompt for mode=gpt")
@@ -29,6 +29,27 @@ def main():
 
     try:
         with socket.create_connection((args.host, args.port)) as s:
+
+            if args.mode:
+                print(f"Connected to {args.host}:{args.port} (One-Shot Mode)")
+
+                if args.mode == "calc":
+                    if not args.expr:
+                        print("Missing --expr", file=sys.stderr);
+                        sys.exit(2)
+                    payload = {"mode": "calc", "data": {"expr": args.expr}, "options": {"cache": not args.no_cache}}
+                else:
+                    if not args.prompt:
+                        print("Missing --prompt", file=sys.stderr);
+                        sys.exit(2)
+                    payload = {"mode": "gpt", "data": {"prompt": args.prompt}, "options": {"cache": not args.no_cache}}
+
+                resp = request(s, payload)
+                print(json.dumps(resp, ensure_ascii=False, indent=2))
+                return
+
+            print(f"Connected to {args.host}:{args.port} (Interactive Mode)")
+            print("Type 'quit' to exit.")
             while True:
                 mode = input("\nMode (calc/gpt): ").strip()
                 if mode in ["quit", "exit"]:
