@@ -14,13 +14,19 @@ import google.generativeai as genai
 
 load_dotenv()
 api_key = os.getenv("GOOGLE_API_KEY")
+model = None
+def init_ai():
+    global model
+    if api_key:
+        try:
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel('gemini-2.5-flash')
+        except Exception as e:
+            print(f"[server] AI Connection failed: {e}")
+    else:
+         print("[server] WARNING: No GOOGLE_API_KEY found in .env file.")
 
-if api_key:
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-2.5-flash')
-else:
-    model = None
-    print("[server] WARNING: No GOOGLE_API_KEY found in .env file.")
+threading.Thread(target=init_ai, daemon=True).start()
 
 # ---------------- LRU Cache (simple) ----------------
 class LRUCache:

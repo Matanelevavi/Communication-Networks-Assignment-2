@@ -1,8 +1,12 @@
 # client.py
 import argparse, socket, json, sys
 
-def request(s: socket.socket, payload: dict) -> dict:
+def request(s: socket.socket, payload: dict, *args) -> dict:
     """Send a single JSON-line request and return a single JSON-line response."""
+    if isinstance(s, str):
+        host, port, payload = s, payload, args[0]
+        with socket.create_connection((host, port)) as temp_sock:
+            return request(temp_sock, payload)
     data = (json.dumps(payload, ensure_ascii=False) + "\n").encode("utf-8")
 
     s.sendall(data)
