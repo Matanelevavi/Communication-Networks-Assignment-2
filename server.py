@@ -84,11 +84,19 @@ def _eval_node(node):
 
 def safe_eval_expr(expr: str) -> float:
     """Parse and evaluate the expression safely using ast (no eval)."""
+    if len(expr)>100:
+        raise ValueError("Expression too long (max 100 chars)")
     try:
         tree = ast.parse(expr, mode="eval")
         return float(_eval_node(tree.body))
-    except Exception:
-        raise ValueError("Invalid math expression")
+    except ZeroDivisionError:
+        raise ValueError("Math Error: Division by zero")
+    except ValueError as ve:
+        raise ve
+    except SyntaxError:
+        raise ValueError("Syntax Error: Invalid format")
+    except Exception as e:
+        raise ValueError(f"Computation Error: {str(e)}")
 
 # ---------------- GPT Call (stub by default) ----------------
 def call_gpt(prompt: str) -> str:
